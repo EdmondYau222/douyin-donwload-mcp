@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.ruff_cache/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docs (not needed in container)
+docs/
+
+# Tests
+src/testers/
+
+# Docker
+Dockerfile
+Dockerfile.mcp
+docker-compose.yml
+.dockerignore
+
+# Downloads (volume mount)
+downloads/
+
+# Existing Dockerfile (original project)
+Dockerfile

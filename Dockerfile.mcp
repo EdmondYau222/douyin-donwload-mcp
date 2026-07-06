@@ -1,0 +1,34 @@
+# ---- MCP Server Dockerfile ----
+# streamable-http transport on port 8000
+FROM python:3.12-slim
+
+WORKDIR /app
+
+LABEL name="douk-downloader-mcp" \
+      description="DouK-Downloader MCP Server (streamable-http)" \
+      repository="https://github.com/JoeanAmier/TikTokDownloader"
+
+# No extra system dependencies needed for MCP server
+
+# Copy and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application source code
+COPY src /app/src
+COPY locale /app/locale
+COPY static /app/static
+COPY license /app/license
+
+# Expose MCP server port
+EXPOSE 8000
+
+# Default transport is streamable-http; override with MCP_TRANSPORT=stdio for Cline
+ENV MCP_HOST=0.0.0.0 \
+    MCP_PORT=8000 \
+    MCP_TRANSPORT=streamable-http \
+    DOWNLOAD_DIR=/app/downloads
+
+VOLUME ["/app/downloads"]
+
+CMD ["python", "-m", "src.mcp_server.server"]
