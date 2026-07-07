@@ -22,9 +22,6 @@ Thumbs.db
 # Docs (not needed in container)
 docs/
 
-# Tests
-src/testers/
-
 # Docker
 Dockerfile
 Dockerfile.mcp

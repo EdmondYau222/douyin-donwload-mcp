@@ -20,6 +20,12 @@
 <p>⭐ Previous project names: <code>TikTokDownloader</code></p>
 <p>⚠️ The encryption parameter algorithm for this project has expired and is no longer valid; to ensure legal and regulatory compliance, the parameter algorithm is no longer maintained, and some features may not work properly. If you need to use it, please prepare the encryption parameter generation code yourself. For configuration instructions, please refer to the <a href="https://github.com/JoeanAmier/TikTokDownloader/wiki/Documentation#%E5%8A%A0%E5%AF%86%E5%8F%82%E6%95%B0%E7%94%9F%E6%88%90%E4%BB%A3%E7%A0%81%E9%85%8D%E7%BD%AE">documentation</a>!</p>
 <p>⭐ Due to the author's limited energy, I was unable to update the English document in a timely manner, and the content may have become outdated, partial translation is machine translation, the translation result may be incorrect, Suggest referring to Chinese documentation. If you want to contribute to translation, we warmly welcome you.</p>
+
+> **📌 This repo is a fork of [JoeanAmier/TikTokDownloader](https://github.com/JoeanAmier/TikTokDownloader) with the following additions:**
+> - 🚀 **MCP Server** — Expose download capabilities to AI clients (Cline / Cursor / Claude Desktop etc.) via MCP protocol
+> - 🐳 **Docker Compose one-click deployment** — No manual Python environment setup required
+> - 🤖 **This project's code was written with the assistance of DeepSeek**
+
 <hr>
 
 # 📝 Project Features
@@ -124,6 +130,63 @@ def demo():
 demo()
 ```
 
+## 🚀 MCP Server Mode
+
+<p>This project supports exposing download capabilities to AI clients (Cline, Cursor, Claude Desktop, etc.) via the <strong>MCP (Model Context Protocol)</strong> protocol.</p>
+
+> 🤖 **This project's code was written with the assistance of DeepSeek**
+
+### MCP Tools
+
+| Tool | Description | Parameters |
+|---|---|---|
+| `douyin_download` | Download Douyin video/image | `url` — post link or ID |
+| `tiktok_download` | Download TikTok video/image | `url` — post link or ID |
+| `douyin_detail` | Get Douyin post details (no download) | `url` — post link or ID |
+| `tiktok_detail` | Get TikTok post details (no download) | `url` — post link or ID |
+| `douyin_comment` | Get Douyin post comments | `detail_id`, `count`(default 20) |
+| `douyin_live` | Get Douyin live stream URLs | `web_rid` — live web_rid |
+| `tiktok_live` | Get TikTok live stream URLs | `room_id` — live room_id |
+| `douyin_account` | Get Douyin account posts | `sec_user_id`, `count`(default 10), `tab`(post/favorite/collection) |
+| `tiktok_account` | Get TikTok account posts | `sec_user_id`, `count`(default 10), `tab`(post/favorite) |
+| `douyin_search` | Search Douyin content | `keyword`, `count`(default 10), `sort_type`(0=general/1=most likes/2=newest), `publish_time`(0=any/1=1day/7=1week/180=6months) |
+
+### Configure Cline with MCP
+
+Add the following MCP Server config in Cline settings:
+
+```json
+{
+  "mcpServers": {
+    "douk-downloader": {
+      "url": "http://localhost:8000/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+### Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `MCP_HOST` | Bind address | `0.0.0.0` |
+| `MCP_PORT` | Bind port | `8000` |
+| `MCP_TRANSPORT` | Transport protocol (streamable-http or stdio) | `streamable-http` |
+| `DOWNLOAD_DIR` | Download directory | `/app/downloads` |
+| `DOUYIN_COOKIE` | Douyin cookie string | (empty) |
+| `TIKTOK_COOKIE` | TikTok cookie string | (empty) |
+| `PROXY` | HTTP/SOCKS5 proxy address | (empty) |
+
+### MCP Usage Examples
+
+Send these instructions to your AI assistant:
+
+- "Download this Douyin video https://v.douyin.com/xxx/"
+- "Search for food-related videos on Douyin"
+- "Get the post list of Douyin user MS4wLjABAAAAxxx"
+- "Get details of this TikTok video https://www.tiktok.com/@user/video/xxx"
+
 # 📋 Project Instructions
 
 ## Quick Start
@@ -179,25 +242,74 @@ demo()
 </ol>
 <p>⭐ It is recommended to use <a href="https://learn.microsoft.com/zh-cn/windows/terminal/install">Windows Terminal</a> (the default terminal that comes with Windows 11).</p>
 
-### Docker Container
+## 🐳 Docker Compose One-Click Deployment (MCP Server)
 
-<ol>
-<li>Get the image</li>
-<ul>
-<li>Method 1: Build the image using the <code>Dockerfile</code>.</li>
-<li>Method 2: Pull the image using the command <code>docker pull joeanamier/tiktok-downloader</code>.</li>
-<li>Method 3: Pull the image using the command <code>docker pull ghcr.io/joeanamier/tiktok-downloader</code>.</li>
-</ul>
-<li>Create the container: <code>docker run --name ContainerName(optional) -p HostPort:5555 -v tiktok_downloader_volume:/app/Volume -it &lt;image name&gt;</code>.</li>
-<br><b>Note:</b> The <code>&lt;image name&gt;</code> here must be consistent with the image name you used in the first step (<code>joeanamier/tiktok-downloader</code> or <code>ghcr.io/joeanamier/tiktok-downloader</code>)
-<li>Run the container
-<ul>
-<li>Start the container: <code>docker start -i container name/container ID</code>.</li>
-<li>Restart the container: <code>docker restart -i container name/container ID</code>.</li>
-</ul>
-</li>
-</ol>
-<p>Docker containers cannot directly access the host machine's file system, and some features may be unavailable, for example: <code>Get Cookie from Browser</code>; if there are any other issues, please report!</p>
+<p>This project provides <code>Dockerfile.mcp</code> and <code>docker-compose.yml</code> for one-click MCP Server startup with Docker Compose, no manual Python environment setup required.</p>
+
+### 1. Configure Cookie in docker-compose.yml
+
+```yaml
+services:
+  douk-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    image: douk-downloader-mcp:latest
+    container_name: douk-mcp
+    ports:
+      - "8000:8000"
+    environment:
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+      - MCP_TRANSPORT=streamable-http
+      - DOWNLOAD_DIR=/app/downloads
+      # Fill in your Douyin/TikTok Cookie
+      - DOUYIN_COOKIE=your_cookie_here
+      - TIKTOK_COOKIE=your_cookie_here
+      # HTTP/SOCKS5 proxy (optional)
+      - PROXY=
+    volumes:
+      - ./downloads:/app/downloads
+    restart: unless-stopped
+```
+
+### 2. Start the Service
+
+```bash
+# Build and start in background
+docker compose up -d --build
+
+# View logs
+docker compose logs -f
+
+# Stop the service
+docker compose down
+```
+
+### 3. Verify
+
+The service listens on `http://localhost:8000` by default, with the MCP endpoint at `http://localhost:8000/mcp`.
+
+```bash
+curl http://localhost:8000/health
+```
+
+### 4. Configure AI Client
+
+Add this to your Cline / Cursor MCP client settings:
+
+```json
+{
+  "mcpServers": {
+    "douk-downloader": {
+      "url": "http://localhost:8000/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+> **Tip:** Downloaded files are saved in the `./downloads` directory, mapped to host via volume mount.
 <hr>
 
 ## About Cookie

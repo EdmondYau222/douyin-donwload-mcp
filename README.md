@@ -19,6 +19,12 @@
 <p>🔥 <b>TikTok 发布/喜欢/合辑/直播/视频/图集/音乐；抖音发布/喜欢/收藏/收藏夹/视频/图集/实况/直播/音乐/合集/评论/账号/搜索/热榜数据采集工具：</b>完全开源，基于 HTTPX 模块实现的免费数据采集和文件下载工具；批量下载抖音账号发布、喜欢、收藏、收藏夹作品；批量下载 TikTok 账号发布、喜欢作品；下载抖音链接或 TikTok 链接作品；获取抖音直播拉流地址；下载抖音直播视频；获取 TikTok 直播拉流地址；下载 TikTok 直播视频；采集抖音作品评论数据；批量下载抖音合集作品；批量下载 TikTok 合辑作品；采集抖音账号详细数据；采集抖音用户 / 作品 / 直播搜索结果；采集抖音热榜数据。</p>
 <p>⭐ 本项目历史名称：<code>TikTokDownloader</code></p>
 <p>⚠️ 本项目的加密参数算法已过期失效；为确保项目合法合规，参数算法不再维护，部分功能可能无法正常工作。如需使用，请自行准备加密参数生成代码，配置方法请查阅 <a href="https://github.com/JoeanAmier/TikTokDownloader/wiki/Documentation#%E5%8A%A0%E5%AF%86%E5%8F%82%E6%95%B0%E7%94%9F%E6%88%90%E4%BB%A3%E7%A0%81%E9%85%8D%E7%BD%AE">文档</a>！</p>
+
+> **📌 本仓库基于 [JoeanAmier/TikTokDownloader](https://github.com/JoeanAmier/TikTokDownloader) 二次开发，新增以下能力：**
+> - 🚀 **MCP Server** — 支持 AI 客户端（Cline / Cursor / Claude Desktop 等）通过 MCP 协议直接调用下载能力
+> - 🐳 **Docker Compose 一键部署** — 无需手动配置 Python 环境
+> - 🤖 **本项目代码由 DeepSeek 辅助编写**
+
 <hr>
 
 # 📝 项目功能
@@ -121,6 +127,63 @@ def demo():
 demo()
 ```
 
+## 🚀 MCP Server 模式
+
+<p>本项目支持通过 <strong>MCP (Model Context Protocol)</strong> 协议将下载能力暴露给 AI 客户端（Cline、Cursor、Claude Desktop 等），让 AI 助手直接调用下载功能。</p>
+
+> 🤖 **本项目代码由 DeepSeek 辅助编写**
+
+### MCP 工具列表
+
+| 工具名 | 功能 | 参数 |
+|---|---|---|
+| `douyin_download` | 下载抖音视频/图集 | `url` — 作品链接或ID |
+| `tiktok_download` | 下载 TikTok 视频/图集 | `url` — 作品链接或ID |
+| `douyin_detail` | 获取抖音作品详情（不下载） | `url` — 作品链接或ID |
+| `tiktok_detail` | 获取 TikTok 作品详情（不下载） | `url` — 作品链接或ID |
+| `douyin_comment` | 获取抖音作品评论 | `detail_id`, `count`(默认20) |
+| `douyin_live` | 获取抖音直播拉流地址 | `web_rid` — 直播 web_rid |
+| `tiktok_live` | 获取 TikTok 直播拉流地址 | `room_id` — 直播 room_id |
+| `douyin_account` | 获取抖音账号作品列表 | `sec_user_id`, `count`(默认10), `tab`(post/favorite/collection) |
+| `tiktok_account` | 获取 TikTok 账号作品列表 | `sec_user_id`, `count`(默认10), `tab`(post/favorite) |
+| `douyin_search` | 搜索抖音内容 | `keyword`, `count`(默认10), `sort_type`(0=综合/1=最多点赞/2=最新), `publish_time`(0=不限/1=一天/7=一周/180=半年) |
+
+### 配置 Cline 使用 MCP
+
+在 Cline 的设置中添加以下 MCP Server 配置：
+
+```json
+{
+  "mcpServers": {
+    "douk-downloader": {
+      "url": "http://localhost:8000/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+### 环境变量
+
+| 变量 | 说明 | 默认值 |
+|---|---|---|
+| `MCP_HOST` | 监听地址 | `0.0.0.0` |
+| `MCP_PORT` | 监听端口 | `8000` |
+| `MCP_TRANSPORT` | 传输协议（streamable-http 或 stdio） | `streamable-http` |
+| `DOWNLOAD_DIR` | 文件下载目录 | `/app/downloads` |
+| `DOUYIN_COOKIE` | 抖音 Cookie 字符串 | 空 |
+| `TIKTOK_COOKIE` | TikTok Cookie 字符串 | 空 |
+| `PROXY` | HTTP/SOCKS5 代理地址 | 空 |
+
+### MCP 调用示例
+
+向 AI 助手发送以下指令即可触发下载：
+
+- "帮我下载这个抖音视频 https://v.douyin.com/xxx/"
+- "搜索抖音上关于美食的视频"
+- "获取抖音用户 MS4wLjABAAAAxxx 的作品列表"
+- "查看这个 TikTok 视频的详细信息 https://www.tiktok.com/@user/video/xxx"
+
 # 📋 项目说明
 
 ## 快速入门
@@ -176,26 +239,74 @@ demo()
 </ol>
 <p>⭐ 推荐使用 <a href="https://learn.microsoft.com/zh-cn/windows/terminal/install">Windows 终端</a>（Windows 11 自带默认终端）</p>
 
-### Docker 容器
+## 🐳 Docker Compose 一键部署（MCP Server）
 
-<ol>
-<li>获取镜像</li>
-<ul>
-<li>方式一：使用 <code>Dockerfile</code> 文件构建镜像</li>
-<li>方式二：使用 <code>docker pull joeanamier/tiktok-downloader</code> 命令拉取镜像</li>
-<li>方式三：使用 <code>docker pull ghcr.io/joeanamier/tiktok-downloader</code> 命令拉取镜像</li>
-</ul>
-<li>创建容器：<code>docker run --name 容器名称(可选) -p 主机端口号:5555 -v tiktok_downloader_volume:/app/Volume -it &lt;镜像名称&gt;</code>
-</li>
-<br><b>注意：</b>此处的 <code>&lt;镜像名称&gt;</code> 需与您在第一步中使用的镜像名称保持一致（例如 <code>joeanamier/tiktok-downloader</code> 或 <code>ghcr.io/joeanamier/tiktok-downloader</code>）
-<li>运行容器
-<ul>
-<li>启动容器：<code>docker start -i 容器名称/容器 ID</code></li>
-<li>重启容器：<code>docker restart -i 容器名称/容器 ID</code></li>
-</ul>
-</li>
-</ol>
-<p>Docker 容器无法直接访问宿主机的文件系统，部分功能不可用，例如：<code>从浏览器读取 Cookie</code>；其他功能如有异常请反馈！</p>
+<p>本项目提供 <code>Dockerfile.mcp</code> 和 <code>docker-compose.yml</code>，支持 Docker Compose 一键启动 MCP Server，无需手动配置 Python 环境。</p>
+
+### 1. 编辑 docker-compose.yml 配置 Cookie
+
+```yaml
+services:
+  douk-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    image: douk-downloader-mcp:latest
+    container_name: douk-mcp
+    ports:
+      - "8000:8000"
+    environment:
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+      - MCP_TRANSPORT=streamable-http
+      - DOWNLOAD_DIR=/app/downloads
+      # 填入你的抖音/TikTok Cookie
+      - DOUYIN_COOKIE=your_cookie_here
+      - TIKTOK_COOKIE=your_cookie_here
+      # HTTP/SOCKS5 代理（可选）
+      - PROXY=
+    volumes:
+      - ./downloads:/app/downloads
+    restart: unless-stopped
+```
+
+### 2. 启动服务
+
+```bash
+# 构建并后台启动
+docker compose up -d --build
+
+# 查看日志
+docker compose logs -f
+
+# 停止服务
+docker compose down
+```
+
+### 3. 验证服务
+
+服务默认监听 `http://localhost:8000`，MCP 端点为 `http://localhost:8000/mcp`。
+
+```bash
+curl http://localhost:8000/health
+```
+
+### 4. 配置 AI 客户端
+
+在 Cline / Cursor 等 MCP 客户端中添加：
+
+```json
+{
+  "mcpServers": {
+    "douk-downloader": {
+      "url": "http://localhost:8000/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+> **提示：** 下载的文件保存在 `./downloads` 目录下，可通过 volume 映射到宿主机。
 <hr>
 
 ## 关于 Cookie
