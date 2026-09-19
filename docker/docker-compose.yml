@@ -1,0 +1,15 @@
+services:
+  douk-mcp:
+    build:
+      # 构建上下文为项目根目录（需要 src/、locale/、requirements.txt）
+      context: ..
+      dockerfile: docker/Dockerfile.mcp
+    image: douk-mcp
+    container_name: douk-mcp
+    ports:
+      - "58081:58081"
+    volumes:
+      - ../Volume:/app/Volume
+    environment:
+      TZ: Asia/Shanghai
+    restart: unless-stopped

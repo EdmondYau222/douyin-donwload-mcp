@@ -1,0 +1,39 @@
+# DouK-Downloader MCP 服务镜像
+# 构建（在项目根目录执行）: docker build -f docker/Dockerfile.mcp -t douk-mcp .
+# 运行: docker run -d --name douk-mcp -p 58081:58081 -v ./Volume:/app/Volume douk-mcp
+# 或使用编排: docker compose -f docker/docker-compose.yml up -d --build
+# 服务地址: http://127.0.0.1:58081/mcp
+
+FROM python:3.12-slim-bookworm
+
+# 安装 Node.js（与上游 Dockerfile 保持一致，签名模块备用运行时）
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        nodejs \
+        tzdata \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# 先安装依赖（利用层缓存，代码变更时无需重装）
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt fastmcp
+
+# 复制应用代码
+COPY src /app/src
+COPY locale /app/locale
+COPY static /app/static
+COPY mcp_server.py /app/mcp_server.py
+
+# 容器内必须绑定 0.0.0.0 才能从宿主机访问
+ENV MCP_HOST=0.0.0.0 \
+    MCP_PORT=58081 \
+    TZ=Asia/Shanghai \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 58081
+
+# Cookie/配置/下载目录/数据库全部持久化在宿主机 Volume 目录
+VOLUME /app/Volume
+
+CMD ["python", "mcp_server.py"]

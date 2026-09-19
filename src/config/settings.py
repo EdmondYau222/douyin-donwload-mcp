@@ -167,7 +167,8 @@ class Settings:
         self.compatible()
         try:
             if self.path.exists():
-                with self.path.open("r", encoding=self.encode) as f:
+                # utf-8-sig 兼容带 BOM 的配置文件（Windows 端写入），无 BOM 时行为不变
+                with self.path.open("r", encoding="utf-8-sig") as f:
                     return self.__check(load(f))
             return self.__create()  # 生成的默认配置文件必须设置 cookie 才可以正常运行
         except JSONDecodeError:

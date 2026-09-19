@@ -1,0 +1,29 @@
+# 版本控制与 IDE
+.git
+.gitignore
+.github
+.idea
+
+# 用户数据（运行时通过卷挂载，不打入镜像）
+Volume
+downloads
+
+# 文档与其他
+docs
+*.md
+license
+
+# Python 缓存
+__pycache__
+**/__pycache__
+*.pyc
+*.egg-info
+.pytest_cache
+
+# 本地测试与历史文件
+*.db
+*.bat
+
+# 导出的镜像包
+docker/*.tar
+docker/*.tar.gz
